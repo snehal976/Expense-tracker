@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense History</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="script.js" defer></script>
+  <script src="data.js" defer></script>
+</head>
+<body class="history-page">
+   <nav>
+  <div>💸 Expense Tracker</div>
+  <div>
+    <a href="index.html">Dashboard</a>
+    <a href="add.html">Add Expense</a>
+    <a href="history.html">History</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="settings.html">Settings</a>
+  </div>
+</nav>
+
+  <h1 class="page-title">📜 Expense History</h1>
+
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="🔍 Search by description..." />
+  </div>
+
+  <div class="expense-list" id="history-list">
+    <!-- Expenses will be rendered here by JS -->
+  </div>
+
+  <footer class="footer">© Made by Snehal Dongare - Expense Tracker App</footer>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Expense</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="script.js" defer></script>
+  <script src="data.js" defer></script>
+</head>
+<body class="add-page">
+  <nav>
+    <div>💸 Expense Tracker</div>
+    <div>
+      <a href="index.html">Dashboard</a>
+      <a href="add.html">Add Expense</a>
+      <a href="history.html">History</a>
+      <a href="analytics.html">Analytics</a>
+      <a href="settings.html">Settings</a>
+    </div>
+  </nav>
+
+  <h1 class="page-title">➕ Add New Expense</h1>
+
+  <div class="glass-form">
+    <form id="expense-form">
+      <div class="input-group">
+        <label for="desc">📝 Description</label>
+        <input type="text" id="desc" placeholder="e.g. Grocery shopping" required />
+      </div>
+
+      <div class="input-group">
+        <label for="amount">💰 Amount</label>
+        <input type="number" id="amount" placeholder="e.g. 1200" required />
+      </div>
+
+      <div class="input-group">
+        <label for="category">📂 Category</label>
+        <select id="category" required>
+          <option value="">Choose one</option>
+          <option value="Food">🍔 Food</option>
+          <option value="Transport">🚌 Transport</option>
+          <option value="Education">🎓 Education</option>
+          <option value="Tech">💻 Tech</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="date">📅 Date</label>
+        <input type="date" id="date" required />
+      </div>
+
+      <button type="submit" class="animated-btn">Add Expense</button>
+    </form>
+  </div>
+
+ <footer class="footer">© Made by Snehal Dongare   - Expense Tracker App</footer>
+</body>
+</html>

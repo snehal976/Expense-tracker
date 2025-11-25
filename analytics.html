@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+  <script src="data.js" defer></script>
+</head>
+<body class="analytics-page">
+  <nav>
+  <div>💸 Expense Tracker</div>
+  <div>
+    <a href="index.html">Dashboard</a>
+    <a href="add.html">Add Expense</a>
+    <a href="history.html">History</a>
+    <a href="analytics.html">Analytics</a>
+    <a href="settings.html">Settings</a>
+  </div>
+</nav>
+
+  <h1 class="page-title">📊 Expense Analytics</h1>
+
+  <div class="chart-section">
+  <div class="chart-card">
+    <h3>Spending by Category</h3>
+    <canvas id="categoryChart"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <h3>Monthly Spending Trend</h3>
+    <canvas id="monthlyChart"></canvas>
+  </div>
+</div>
+
+<div class="total-spent" id="total-spent"></div>
+
+<div class="download-section">
+  <button onclick="downloadMonthlyJSON()" class="animated-btn">⬇️ Download Monthly JSON</button>
+</div>
+
+<footer class="footer">© Made by Snehal Dongare - Expense Tracker App</footer>
+<script>
+  function getExpenses() {
+    return JSON.parse(localStorage.getItem("expenses")) || [];
+  }
+
+  function loadAnalytics() {
+    const expenses = getExpenses();
+    const currentMonth = new Date().getMonth();
+    const monthlyExpenses = expenses.filter(exp => new Date(exp.date).getMonth() === currentMonth);
+
+    const categoryTotals = {};
+    const dailyTotals = {};
+    let total = 0;
+
+    monthlyExpenses.forEach(exp => {
+      total += exp.amount;
+      categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + exp.amount;
+      const day = new Date(exp.date).getDate();
+      dailyTotals[day] = (dailyTotals[day] || 0) + exp.amount;
+    });
+
+    new Chart(document.getElementById('categoryChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(categoryTotals),
+        datasets: [{
+          data: Object.values(categoryTotals),
+          backgroundColor: ['#f39c12', '#3498db', '#2ecc71', '#9b59b6']
+        }]
+      }
+    });
+
+    new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: Object.keys(dailyTotals),
+        datasets: [{
+          label: 'Daily Spending',
+          data: Object.values(dailyTotals),
+          borderColor: '#4a90e2',
+          backgroundColor: 'rgba(74,144,226,0.2)',
+          fill: true,
+          tension: 0.3
+        }]
+      }
+    });
+
+    document.getElementById('total-spent').innerText = `🧾 Total Spent This Month: ₹${total}`;
+  }
+
+  function downloadMonthlyJSON() {
+    const expenses = getExpenses();
+    const currentMonth = new Date().getMonth();
+    const monthlyExpenses = expenses.filter(exp => new Date(exp.date).getMonth() === currentMonth);
+
+    const blob = new Blob([JSON.stringify(monthlyExpenses, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'monthly-expenses.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.addEventListener('DOMContentLoaded', loadAnalytics);
+</script>

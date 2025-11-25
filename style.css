@@ -1,0 +1,547 @@
+/* ===== Reset & Base ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #972828;
+  color: #2f3640;
+  padding: 20px;
+  background: linear-gradient(to right, #151515, #444141);
+
+}
+
+/* ===== Navigation Bar ===== */
+nav {
+  background: linear-gradient(to right, #9cd0e6, #d578b6);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgb(249, 0, 0);
+  font-weight: 500px;
+  font-weight: 500;
+}
+nav a {
+  color: rgb(57, 53, 53);
+  text-decoration: solid;
+  margin-left: 20px;
+  font-weight: 500;
+}
+nav a:hover {
+  color: #0f1910;
+  text-shadow: 1px 0px 1px #ea7131;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+  text-decoration: underline;
+}
+nav:hover {
+  
+  color: rgb(249, 0, 0);
+  transition: background-color 0.3s ease;
+}
+
+/* ===== Page Titles ===== */
+h1 {
+  text-align: center;
+  margin: 60px 40px;
+  color: #efeeed;
+}
+
+h1:hover{
+  color: #abb2ac;
+  text-shadow: 1px 0px 1px #2e2d2c;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+  text-decoration: underline;
+}
+
+/* ===== Form Section ===== */
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+input, select {
+  padding: 10px;
+  border: 1px solid #dcdde1;
+  border-radius: 5px;
+  width: 200px;
+}
+button {
+  padding: 10px 20px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #223852;
+}
+
+/* ===== Expense Cards ===== */
+.expense-list {
+  max-width: 700px;
+  margin: 0 auto;
+}
+.expense-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  padding: 15px 20px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.expense-card .amount {
+  color: #27ae60;
+  font-weight: bold;
+}
+.expense-card .delete {
+  color: #e74c3c;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center;
+  margin-top: 200px;
+  font-size: 16px;
+  color: #7f8c8d;
+}
+body.dark {
+  background-color: #1e1e2f;
+  color: #f5f5f5;
+}
+nav.dark {
+  background-color: #2c2c3e;
+}
+.expense-card.dark {
+  background-color: rgba(50, 50, 70, 0.8);
+  color: #f5f5f5;
+}
+.expense-card {
+  transition: transform 0.3s ease;
+}
+.expense-card:hover {
+  transform: scale(1.02);
+}
+
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  form {
+    flex-direction: row-reverse;
+    align-items: flex-start;
+  }
+  .expense-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.card-container {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.card {
+  width: 180px;
+  height: 220px;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  text-align: center;
+  padding: 20px;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  border: 4px solid #101010;
+    box-shadow: 0 12px 24px rgba(255, 252, 252, 0.3);
+}
+
+.card img {
+  margin-bottom: 10px;
+}
+
+.card-container a.card {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  width: 180px;
+  height: 220px;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  text-align: center;
+  padding: 20px;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+body.fade-out  {
+  opacity: 20;
+  transition: opacity 0.3s ease;
+}
+
+/* CSS Style for Add expense page */
+/* Match background from index.html */
+body.add-page {
+  background: linear-gradient(to right, #151515, #444141);
+  font-family: 'Poppins', sans-serif;
+  color: #2f3640;
+}
+
+/* Page title styling */
+.page-title {
+  text-align: center;
+  margin: 60px 40px;
+  color: #efeeed;
+}
+.page-title:hover{
+  color: #abb2ac;
+  text-shadow: 1px 0px 1px #2e2d2c;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+  text-decoration: underline;
+}
+
+/* Glassmorphism form card */
+.glass-form {
+  max-width: 500px;
+  margin: 40px auto;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(18px);
+  border-radius: 10px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  padding: 30px;
+}
+
+.glass-form:hover{
+  transform: scale(1.05);
+  border: 3px solid #121010;
+  box-shadow: 0 12px 24px rgba(255, 252, 252, 0.3);
+}
+/* Input styling */
+.input-group {
+  margin-bottom: 20px;
+}
+.input-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: box-shadow 0.3s ease;
+}
+.input-group input:focus,
+.input-group select:focus {
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
+  outline: none;
+}
+
+/* Animated button */
+.animated-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #0075fa;
+  color: white;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+.animated-btn:hover {
+  background-color: #5fa0d9;
+  transform: scale(1.03);
+}
+
+/* History.html file CSS */
+body.history-page {
+  background: linear-gradient(to right, #151515, #444141);
+  font-family: 'Poppins', sans-serif;
+  color: #2f3640;
+}
+
+.search-bar {
+  max-width: 400px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.search-bar:hover {
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+  border: #0f1910 2px solid;
+  border-radius: 10px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.expense-list {
+  max-width: 400px;
+  margin: 30px auto;
+}
+
+.expense-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(73, 70, 70, 0.1);
+  padding: 20px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.expense-card:hover {
+  border: #151515 3px solid;
+  box-shadow: #151515 0 12px 24px rgba(138, 127, 127, 0.3);
+  transform: scale(1.02);
+}
+
+.expense-card .amount {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.expense-card .delete {
+  color: #e74c3c;
+  cursor: pointer;
+  font-weight: bold;
+}
+body.analytics-page {
+  background: linear-gradient(to right, #151515, #444141);
+  font-family: 'Poppins', sans-serif;
+  color: #f5f5f5;
+}
+
+
+.chart-section {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+}
+
+.chart-card {
+  background: rgb(242, 236, 236);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+  padding: 20px;
+  width: 400px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.chart-card:hover {
+  transform: scale(1.03);
+  border: 2px solid #080808;
+}
+
+.chart-card h3 {
+  margin-bottom: 20px;
+  color: #7ab5f7;
+}
+
+.download-section {
+  width: 50%;
+  text-align: center;
+  margin: 40px auto 80px;
+}
+
+.download-section .animated-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.download-section .animated-btn:hover {
+  background-color: #357ab8;
+  transform: scale(1.05);
+}
+
+.expense-list {
+  max-width: 600px;
+  margin: 30px auto;
+}
+
+.expense-card {
+  background: rgba(241, 237, 237, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  padding: 20px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.3s ease;
+  color: #fff;
+}
+
+.expense-card:hover {
+  transform: scale(1.02);
+  border: 2px solid #121212;
+}
+
+.expense-card .amount {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.total-spent {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 20px 0 60px;
+  color: #4a90e2;
+}
+/* Setting pages CSS */
+body.settings-page {
+  background: linear-gradient(to right, #151515, #444141);
+  font-family: 'Poppins', sans-serif;
+  color: #f5f5f5;
+}
+
+.settings-card {
+  max-width: 500px;
+  margin: 40px auto;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+  padding: 30px;
+}
+
+.settings-card:hover {
+  transform: scale(1.02);
+  border: 3px solid #080808;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #faf9f9;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  background-color: #fff;
+  color: #2f3640;
+}
+
+.animated-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #4a90e2;
+  color: white;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.animated-btn:hover {
+  background-color: #357ab8;
+  transform: scale(1.03);
+}
+
+.animated-btn.danger {
+  background-color: #e74c3c;
+}
+
+.animated-btn.danger:hover {
+  background-color: #c0392b;
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: #2ecc71;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 999;
+}
+.toast.show {
+  opacity: 1;
+}
+.budget-bar {
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 30px auto;
+  color: #f5f5f5;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px 20px;
+  border-radius: 10px;
+  max-width: 400px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}

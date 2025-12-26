@@ -56,9 +56,6 @@ Charts update dynamically based on current month’s data.
 
 Users can export their data or reset everything with one click.
 
-📌 Setup Instructions
-Clone the repo git clone https://github.com/SiddheshJadhav1234/expense-tracker.git
-
 Open index.html in your browser Or deploy to Netlify/GitHub Pages for live hosting
 
 📄 License

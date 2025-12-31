@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseTracker</title>
+    
+    <!-- Three.js for 3D Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Tailwind Configuration -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bg: {
+                            main: 'var(--bg-main)',
+                            surface: 'var(--bg-surface)',
+                            card: 'var(--bg-card)',
+                        },
+                        text: {
+                            main: 'var(--text-main)',
+                            muted: 'var(--text-muted)',
+                            inverted: 'var(--text-inverted)'
+                        },
+                        border: {
+                            DEFAULT: 'var(--border-color)'
+                        },
+                        primary: {
+                            DEFAULT: 'var(--primary)',
+                            hover: 'var(--primary-hover)',
+                            fg: 'var(--primary-fg)',
+                            light: 'var(--primary-light)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(5deg)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Variables for Themes */
+        :root {
+            /* Default Dark Theme */
+            --bg-main: #030712;    /* gray-950 */
+            --bg-surface: rgba(17, 24, 39, 0.85); /* gray-900 with opacity for glass */
+            --bg-card: #1f2937;    /* gray-800 */
+            
+            --text-main: #f3f4f6;  /* gray-100 */
+            --text-muted: #9ca3af; /* gray-400 */
+            --text-inverted: #000000;
+            
+            --border-color: #374151; /* gray-700 */
+            
+            --primary: #3b82f6;      /* blue-500 */
+            --primary-hover: #2563eb; /* blue-600 */
+            --primary-fg: #ffffff;
+            --primary-light: rgba(59, 130, 246, 0.15);
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f3f4f6;    /* gray-100 */
+            --bg-surface: rgba(255, 255, 255, 0.9);
+            --bg-card: #ffffff;
+            
+            --text-main: #111827;  /* gray-900 */
+            --text-muted: #6b7280; /* gray-500 */
+            --text-inverted: #ffffff;
+            
+            --border-color: #e5e7eb; /* gray-200 */
+            
+            --primary: #2563eb;      /* blue-600 */
+            --primary-hover: #1d4ed8; /* blue-700 */
+            --primary-fg: #ffffff;
+            --primary-light: rgba(37, 99, 235, 0.1);
+        }
+
+        [data-theme="neon"] {
+            --bg-main: #000000;
+            --bg-surface: rgba(10, 10, 10, 0.9);
+            --bg-card: #121212;
+            
+            --text-main: #fbbf24;  /* amber-400 */
+            --text-muted: #a16207; /* amber-700 */
+            --text-inverted: #000000;
+            
+            --border-color: #f59e0b; /* amber-500 */
+            
+            --primary: #ffd700;      /* Gold */
+            --primary-hover: #eab308; /* amber-500 */
+            --primary-fg: #000000;
+            --primary-light: rgba(255, 215, 0, 0.15);
+        }
+
+        /* Neon specific glows */
+        [data-theme="neon"] .neon-border {
+            box-shadow: 0 0 5px var(--border-color), inset 0 0 5px var(--border-color);
+        }
+        [data-theme="neon"] button.primary-btn {
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color); 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted); 
+        }
+
+        /* Enhanced Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes growWidth {
+            from { width: 0; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        
+        .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .animate-slideIn { animation: slideInRight 0.3s ease-out forwards; }
+        .animate-grow { animation: growWidth 1s ease-out forwards; }
+        .animate-stagger { opacity: 0; animation: slideUp 0.4s ease-out forwards; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 6s ease-in-out 3s infinite; }
+
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+
+        /* Card Hover Effects */
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        [data-theme="neon"] .card-hover:hover {
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background-color: var(--bg-surface);
+        }
+
+        /* Canvas Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        #app {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-bg-main text-text-main font-sans overflow-hidden transition-colors duration-500">
+
+    <!-- 3D Background Container -->
+    <div id="canvas-container"></div>
+
+    <div id="app" class="flex h-screen w-full">
+        <!-- Sidebar with Glass Effect -->
+        <aside class="w-64 glass-panel border-r border-border hidden md:flex flex-col z-20 transition-colors duration-300">
+            <div class="p-6">
+                <div class="flex items-center gap-2 text-primary mb-8 animate-slideIn">
+                    <div class="p-2 bg-primary-light rounded-lg">
+                        <i data-lucide="wallet" class="w-7 h-7"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-text-main">ExpenseTracker</span>
+                </div>
+                <nav id="sidebar-nav" class="space-y-2">
+                    <!-- Nav items injected here -->
+                </nav>
+            </div>
+            <div class="mt-auto p-6 border-t border-border">
+                <div class="flex items-center gap-3 animate-fadeIn delay-300">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-primary-hover flex items-center justify-center text-primary-fg font-bold text-sm shadow-lg shadow-primary/20">
+                        Chief
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-text-main">Chief Lucifer</p>
+                        
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col relative overflow-hidden transition-colors duration-300">
+            <!-- Header with Glass Effect -->
+            <header class="h-16 border-b border-border flex items-center justify-between px-6 glass-panel z-10 sticky top-0">
+                <h1 id="page-title" class="text-xl font-bold capitalize text-text-main tracking-tight animate-slideIn">Dashboard</h1>
+                <div class="flex items-center gap-4 animate-slideIn delay-100">
+                    <!-- Theme Toggle Button -->
+                    <button onclick="cycleTheme()" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-card border border-border text-xs text-text-muted hover:text-text-main hover:border-primary transition-all cursor-pointer group shadow-sm hover:shadow-md" title="Click to switch theme">
+                        <i data-lucide="palette" class="w-3 h-3 group-hover:text-primary transition-colors"></i>
+                        <span id="current-theme-display" class="capitalize font-medium">Dark</span>
+                    </button>
+                    <button class="p-2 text-text-muted hover:text-text-main rounded-full hover:bg-bg-card transition-colors relative">
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        <div class="w-5 h-5 border-2 border-current rounded-full"></div>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dynamic Content Area -->
+            <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 scroll-smooth">
+                <!-- Views rendered here -->
+            </div>
+        </main>
+
+        <!-- Mobile Nav -->
+        <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-border p-2 z-40 flex justify-around" id="mobile-nav">
+            <!-- Mobile nav items injected here -->
+        </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="modal-layer" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fadeIn">
+        <div class="bg-bg-card rounded-2xl w-full max-w-lg shadow-2xl border border-border flex flex-col max-h-[90vh] scale-100 transition-transform duration-200">
+            <div class="flex justify-between items-center p-6 border-b border-border">
+                <h2 id="modal-title" class="text-xl font-bold text-text-main">New Expense</h2>
+                <button onclick="closeModal()" class="text-text-muted hover:text-text-main transition-transform hover:rotate-90"><i data-lucide="x"></i></button>
+            </div>
+            <div id="modal-body" class="p-6 overflow-y-auto space-y-5">
+                <!-- Form fields injected here -->
+            </div>
+            <div class="p-6 border-t border-border flex justify-end gap-3 bg-bg-surface/50 rounded-b-2xl">
+                <button onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-main transition-colors hover:bg-bg-surface rounded-lg">Cancel</button>
+                <button onclick="saveExpense()" class="px-5 py-2 text-sm font-medium bg-primary hover:bg-primary-hover text-primary-fg rounded-lg shadow-lg shadow-primary/25 transition-all transform hover:translate-y-px primary-btn">Save Expense</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Dialog Modal (Replaces Confirm/Prompt/Alert) -->
+    <div id="dialog-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fadeIn">
+        <div class="bg-bg-card rounded-xl w-full max-w-sm shadow-2xl border border-border flex flex-col scale-100 transition-transform duration-200">
+            <div class="p-6">
+                <h3 id="dialog-title" class="text-lg font-bold text-text-main mb-2">Title</h3>
+                <p id="dialog-text" class="text-sm text-text-muted mb-4">Message goes here...</p>
+                <input id="dialog-input" type="text" class="w-full bg-bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-sm outline-none focus:border-primary hidden mb-2" placeholder="Enter value...">
+                <div class="flex justify-end gap-3 mt-4">
+                    <button id="dialog-cancel" onclick="closeDialog()" class="px-3 py-2 text-sm font-medium text-text-muted hover:text-text-main transition-colors">Cancel</button>
+                    <button onclick="onDialogConfirm()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-hover text-primary-fg rounded-lg shadow-lg transition-all">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- THREE.JS BACKGROUND ANIMATION ---
+        
+        let scene, camera, renderer, particles, lines;
+        let positions, velocities;
+        let particleCount = 150; 
+        const MAX_PARTICLES = 1200; 
+        let mouseX = 0, mouseY = 0;
+
+        // Configuration
+        let themeConfig = {
+            pColor: new THREE.Color(0x3b82f6),
+            lColor: new THREE.Color(0x3b82f6),
+            speed: 0.3,
+            maxDist: 150
+        };
+
+        function initThree() {
+            const container = document.getElementById('canvas-container');
+            if(!container) return;
+
+            scene = new THREE.Scene();
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = 800;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            createGeometry(particleCount);
+
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX - window.innerWidth / 2) * 0.1;
+                mouseY = (e.clientY - window.innerHeight / 2) * 0.1;
+            });
+
+            // Interactive burst on click
+            document.addEventListener('mousedown', (e) => {
+                const targetId = e.target.id;
+                const tagName = e.target.tagName;
+                const isContainer = targetId === 'content-area' || targetId === 'app' || tagName === 'MAIN' || tagName === 'BODY';
+                
+                if (isContainer) {
+                    const newCount = Math.min(Math.floor(particleCount * 1.5), MAX_PARTICLES); 
+                    themeConfig.maxDist += 40;
+                    if(themeConfig.maxDist > 400) themeConfig.maxDist = 150;
+                    createGeometry(newCount);
+                }
+            });
+
+            animate();
+        }
+
+        function createGeometry(count) {
+            if (particles) { scene.remove(particles); particles.geometry.dispose(); }
+            if (lines) { scene.remove(lines); lines.geometry.dispose(); }
+
+            particleCount = count;
+            
+            const geo = new THREE.BufferGeometry();
+            positions = new Float32Array(particleCount * 3);
+            velocities = new Float32Array(particleCount * 3);
+
+            for(let i = 0; i < particleCount; i++) {
+                positions[i*3] = (Math.random() - 0.5) * 1200;
+                positions[i*3+1] = (Math.random() - 0.5) * 1200;
+                positions[i*3+2] = (Math.random() - 0.5) * 1200;
+                
+                velocities[i*3] = (Math.random() - 0.5) * themeConfig.speed * 2;
+                velocities[i*3+1] = (Math.random() - 0.5) * themeConfig.speed * 2;
+                velocities[i*3+2] = (Math.random() - 0.5) * themeConfig.speed * 2;
+            }
+
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const mat = new THREE.PointsMaterial({ 
+                color: themeConfig.pColor, 
+                size: 3, 
+                transparent: true, 
+                opacity: 0.8,
+                sizeAttenuation: true
+            });
+            particles = new THREE.Points(geo, mat);
+            scene.add(particles);
+
+            const lineMat = new THREE.LineBasicMaterial({ 
+                color: themeConfig.lColor, 
+                transparent: true, 
+                opacity: 0.2
+            });
+            const lineGeo = new THREE.BufferGeometry();
+            lines = new THREE.LineSegments(lineGeo, lineMat);
+            scene.add(lines);
+        }
+
+        function updateThreeTheme(colorHex) {
+            const color = new THREE.Color(colorHex);
+            themeConfig.pColor = color;
+            themeConfig.lColor = color;
+
+            if (particles && particles.material) {
+                particles.material.color = color;
+                particles.material.needsUpdate = true;
+            }
+            if (lines && lines.material) {
+                lines.material.color = color;
+                lines.material.needsUpdate = true;
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            camera.position.x += (mouseX - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            const posArr = particles.geometry.attributes.position.array;
+            const linePos = [];
+
+            if(lines && lines.material) {
+                lines.material.opacity = 0.15 + Math.sin(Date.now() * 0.002) * 0.1; 
+            }
+
+            for(let i = 0; i < particleCount; i++) {
+                posArr[i*3] += velocities[i*3];
+                posArr[i*3+1] += velocities[i*3+1];
+                posArr[i*3+2] += velocities[i*3+2];
+
+                if(Math.abs(posArr[i*3]) > 600) velocities[i*3] *= -1;
+                if(Math.abs(posArr[i*3+1]) > 600) velocities[i*3+1] *= -1;
+                if(Math.abs(posArr[i*3+2]) > 600) velocities[i*3+2] *= -1;
+
+                for(let j = i + 1; j < particleCount; j++) {
+                    const dx = posArr[i*3] - posArr[j*3];
+                    const dy = posArr[i*3+1] - posArr[j*3+1];
+                    const dz = posArr[i*3+2] - posArr[j*3+2];
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    if(dist < themeConfig.maxDist) {
+                        linePos.push(posArr[i*3], posArr[i*3+1], posArr[i*3+2]);
+                        linePos.push(posArr[j*3], posArr[j*3+1], posArr[j*3+2]);
+                    }
+                }
+            }
+
+            particles.geometry.attributes.position.needsUpdate = true;
+            lines.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linePos), 3));
+            
+            scene.rotation.y += 0.0005; 
+
+            renderer.render(scene, camera);
+        }
+
+        // --- App Data & State ---
+        const DEFAULT_CATEGORIES = [
+            { id: 'c1', name: 'Food', budget: 5000, color: '#F87171' },
+            { id: 'c2', name: 'Travel', budget: 2000, color: '#60A5FA' },
+            { id: 'c3', name: 'Rent', budget: 12000, color: '#34D399' },
+            { id: 'c4', name: 'Shopping', budget: 3000, color: '#A78BFA' },
+            { id: 'c5', name: 'Utilities', budget: 1500, color: '#FBBF24' },
+        ];
+        
+        const DEFAULT_DEBTS = [
+            { id: 1, name: 'Car Loan', total: 150000, paid: 45000, color: '#ef4444' },
+            { id: 2, name: 'Credit Card', total: 25000, paid: 5000, color: '#f59e0b' }
+        ];
+        
+        const DEFAULT_SAVINGS = [
+            { id: 1, name: 'Emergency Fund', target: 100000, current: 25000, color: '#10b981' },
+            { id: 2, name: 'Vacation', target: 50000, current: 12000, color: '#3b82f6' }
+        ];
+
+        const DEFAULT_SCHEMA = [
+            { id: 'name', label: 'Expense Name', type: 'text', required: true, system: true },
+            { id: 'amount', label: 'Amount', type: 'number', required: true, system: true },
+            { id: 'date', label: 'Date', type: 'date', required: true, system: true },
+            { id: 'category', label: 'Category', type: 'select', required: true, system: true },
+            { id: 'paymentMode', label: 'Payment Mode', type: 'select', options: ['Cash', 'UPI', 'Card', 'Bank'], required: false, system: false },
+            { id: 'notes', label: 'Notes', type: 'text', required: false, system: false },
+            { id: 'tags', label: 'Tags', type: 'text', required: false, system: false, placeholder: 'Comma separated' },
+        ];
+        const MOCK_DATA = [
+            { id: 1, name: 'Grocery Run', amount: 850, category: 'Food', date: '2023-10-15', paymentMode: 'Card', notes: 'Weekly stock', tags: 'home, food' },
+            { id: 2, name: 'Uber to Work', amount: 240, category: 'Travel', date: '2023-10-16', paymentMode: 'UPI', notes: '', tags: 'commute' },
+            { id: 3, name: 'Rent Oct', amount: 12000, category: 'Rent', date: '2023-10-01', paymentMode: 'Bank', notes: 'Monthly rent', tags: 'fixed' },
+        ];
+        const DEFAULT_CUSTOM_THEME = {
+            '--bg-main': '#23153c',
+            '--bg-surface': '#2a1b4e',
+            '--bg-card': '#33215a',
+            '--text-main': '#e9d5ff',
+            '--text-muted': '#a855f7',
+            '--text-inverted': '#ffffff',
+            '--primary': '#d8b4fe',
+            '--primary-hover': '#c084fc',
+            '--border-color': '#581c87',
+            '--primary-fg': '#1e1b4b'
+        };
+
+        const state = {
+            activeTab: 'dashboard',
+            expenses: JSON.parse(localStorage.getItem('expenses')) || MOCK_DATA,
+            categories: JSON.parse(localStorage.getItem('categories')) || DEFAULT_CATEGORIES,
+            debts: JSON.parse(localStorage.getItem('debts')) || DEFAULT_DEBTS,
+            savings: JSON.parse(localStorage.getItem('savings')) || DEFAULT_SAVINGS,
+            schema: JSON.parse(localStorage.getItem('schema')) || DEFAULT_SCHEMA,
+            theme: localStorage.getItem('theme') || 'dark', 
+            customTheme: JSON.parse(localStorage.getItem('customTheme')) || DEFAULT_CUSTOM_THEME,
+            viewMode: 'table', 
+            filterCategory: 'All',
+            searchTerm: '',
+            sortBy: 'date-desc',
+            editingId: null,
+            calendarDate: new Date()
+        };
+
+        function persist() {
+            localStorage.setItem('expenses', JSON.stringify(state.expenses));
+            localStorage.setItem('categories', JSON.stringify(state.categories));
+            localStorage.setItem('debts', JSON.stringify(state.debts));
+            localStorage.setItem('savings', JSON.stringify(state.savings));
+            localStorage.setItem('schema', JSON.stringify(state.schema));
+            localStorage.setItem('theme', state.theme);
+            localStorage.setItem('customTheme', JSON.stringify(state.customTheme));
+            renderApp();
+            applyTheme();
+        }
+
+        function hexToRgba(hex, alpha) {
+            let r = 0, g = 0, b = 0;
+            if (hex.length === 4) {
+                r = parseInt(hex[1] + hex[1], 16);
+                g = parseInt(hex[2] + hex[2], 16);
+                b = parseInt(hex[3] + hex[3], 16);
+            } else if (hex.length === 7) {
+                r = parseInt(hex.slice(1, 3), 16);
+                g = parseInt(hex.slice(3, 5), 16);
+                b = parseInt(hex.slice(5, 7), 16);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function applyTheme() {
+            const root = document.documentElement;
+            root.setAttribute('data-theme', state.theme);
+            const display = document.getElementById('current-theme-display');
+            if(display) display.innerText = state.theme;
+
+            let primaryColor = '#3b82f6';
+
+            if (state.theme === 'custom') {
+                Object.entries(state.customTheme).forEach(([key, val]) => root.style.setProperty(key, val));
+                root.style.setProperty('--primary-light', hexToRgba(state.customTheme['--primary'], 0.15));
+                primaryColor = state.customTheme['--primary'];
+            } else {
+                ['--bg-main', '--bg-surface', '--bg-card', '--text-main', '--text-muted', '--text-inverted', '--primary', '--primary-hover', '--primary-fg', '--border-color', '--primary-light'].forEach(k => root.style.removeProperty(k));
+                if(state.theme === 'dark') primaryColor = '#3b82f6';
+                if(state.theme === 'light') primaryColor = '#2563eb';
+                if(state.theme === 'neon') primaryColor = '#ffd700';
+            }
+            updateThreeTheme(primaryColor);
+        }
+
+        function setTheme(themeName) { state.theme = themeName; persist(); }
+        function updateCustomTheme(key, value) { state.customTheme[key] = value; persist(); applyTheme(); }
+        function cycleTheme() {
+            const themes = ['dark', 'light', 'neon', 'custom'];
+            setTheme(themes[(themes.indexOf(state.theme) + 1) % themes.length]);
+        }
+
+        const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+        const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+        function init() {
+            initThree();
+            applyTheme();
+            renderNav();
+            renderApp();
+        }
+
+        function renderNav() {
+            const tabs = [
+                { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+                { id: 'expenses', label: 'Expenses', icon: 'receipt' },
+                { id: 'budgets', label: 'Budgets', icon: 'pie-chart' },
+                { id: 'debts', label: 'Debts', icon: 'credit-card' },
+                { id: 'savings', label: 'Savings', icon: 'piggy-bank' },
+                { id: 'settings', label: 'Settings', icon: 'settings' },
+            ];
+
+            const navHTML = tabs.map(tab => `
+                <button onclick="switchTab('${tab.id}')" 
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${state.activeTab === tab.id ? 'bg-primary text-primary-fg shadow-lg shadow-primary/20 transform scale-105' : 'text-text-muted hover:bg-bg-card hover:text-text-main hover:translate-x-1'}">
+                    <i data-lucide="${tab.icon}" class="w-5 h-5"></i>
+                    ${tab.label}
+                </button>
+            `).join('');
+            
+            const mobileHTML = tabs.map(tab => `
+                <button onclick="switchTab('${tab.id}')" class="p-3 rounded-xl transition-all active:scale-95 ${state.activeTab === tab.id ? 'text-primary bg-bg-card shadow-md' : 'text-text-muted'}">
+                    <i data-lucide="${tab.icon}" class="w-6 h-6"></i>
+                </button>
+            `).join('');
+
+            document.getElementById('sidebar-nav').innerHTML = navHTML;
+            document.getElementById('mobile-nav').innerHTML = mobileHTML;
+            document.getElementById('page-title').innerText = state.activeTab;
+            lucide.createIcons();
+        }
+
+        function switchTab(tabId) { state.activeTab = tabId; renderNav(); renderApp(); }
+
+        function renderApp() {
+            const content = document.getElementById('content-area');
+            content.innerHTML = ''; 
+            if (state.activeTab === 'dashboard') content.innerHTML = getDashboardHTML();
+            else if (state.activeTab === 'expenses') content.innerHTML = getExpensesHTML();
+            else if (state.activeTab === 'budgets') content.innerHTML = getBudgetsHTML();
+            else if (state.activeTab === 'debts') content.innerHTML = getDebtsHTML();
+            else if (state.activeTab === 'savings') content.innerHTML = getSavingsHTML();
+            else if (state.activeTab === 'settings') content.innerHTML = getSettingsHTML();
+            
+            lucide.createIcons();
+            applyTheme();
+            runAnimations();
+        }
+
+        function runAnimations() {
+            const counters = document.querySelectorAll('.count-up');
+            counters.forEach(counter => {
+                const target = parseFloat(counter.getAttribute('data-value'));
+                if (isNaN(target)) return;
+                
+                const duration = 1500;
+                const start = 0;
+                const startTime = performance.now();
+                
+                function update(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                    const current = start + (target - start) * ease;
+                    counter.innerText = formatCurrency(current);
+                    if (progress < 1) requestAnimationFrame(update);
+                    else counter.innerText = formatCurrency(target);
+                }
+                requestAnimationFrame(update);
+            });
+        }
+
+        // --- Dialog Logic ---
+        let dialogCallback = null;
+
+        function closeDialog() {
+            document.getElementById('dialog-modal').classList.add('hidden');
+            dialogCallback = null;
+        }
+
+        function showConfirm(message, onConfirm) {
+            setupDialog('Confirm Action', message, null, true, onConfirm);
+        }
+
+        function showAlert(message) {
+            setupDialog('Alert', message, null, false, () => {});
+        }
+
+        function showPrompt(title, defaultValue, onConfirm) {
+            setupDialog(title, '', defaultValue, true, onConfirm);
+        }
+
+        function setupDialog(title, text, inputValue, showCancel, onConfirm) {
+            const modal = document.getElementById('dialog-modal');
+            document.getElementById('dialog-title').innerText = title;
+            document.getElementById('dialog-text').innerText = text;
+            
+            const input = document.getElementById('dialog-input');
+            if (inputValue !== null) {
+                input.classList.remove('hidden');
+                input.value = typeof inputValue === 'string' ? inputValue : '';
+                input.focus();
+            } else {
+                input.classList.add('hidden');
+            }
+
+            const cancelBtn = document.getElementById('dialog-cancel');
+            if (showCancel) cancelBtn.classList.remove('hidden');
+            else cancelBtn.classList.add('hidden');
+
+            dialogCallback = onConfirm;
+            modal.classList.remove('hidden');
+        }
+
+        function onDialogConfirm() {
+            const input = document.getElementById('dialog-input');
+            const val = input.value;
+            if (dialogCallback) {
+                if (!input.classList.contains('hidden')) dialogCallback(val);
+                else dialogCallback(); 
+            }
+            closeDialog();
+        }
+
+        // --- View Generators ---
+
+        function getDashboardHTML() {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const totalExpenses = state.expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+            const monthlyExpenses = state.expenses
+                .filter(e => {
+                    const d = new Date(e.date);
+                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                })
+                .reduce((acc, curr) => acc + Number(curr.amount), 0);
+            
+            // Calculate Total Savings
+            const totalSavings = state.savings.reduce((acc, curr) => acc + Number(curr.current), 0);
+
+            const catBreakdown = state.categories.map(cat => {
+                const total = state.expenses.filter(e => e.category === cat.name).reduce((sum, e) => sum + Number(e.amount), 0);
+                return { ...cat, total };
+            }).sort((a, b) => b.total - a.total);
+            const maxSpend = Math.max(...catBreakdown.map(c => c.total), 1);
+
+            return `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slideIn">
+                        <!-- Total Spent Card -->
+                        <div class="bg-bg-card border border-border rounded-xl p-5 shadow-lg relative overflow-hidden group hover:border-primary transition-colors neon-border card-hover">
+                            <div class="relative z-10">
+                                <p class="text-text-muted text-sm font-medium">Total Spent</p>
+                                <h2 class="text-3xl font-bold text-text-main mt-2 count-up" data-value="${totalExpenses}">${formatCurrency(0)}</h2>
+                                <div class="mt-4 flex items-center text-sm text-primary">
+                                    <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i> Lifetime
+                                </div>
+                            </div>
+                            <div class="absolute right-4 top-4 text-primary opacity-10 w-24 h-24 group-hover:scale-110 transition-transform duration-500 animate-float"><i data-lucide="wallet" class="w-full h-full"></i></div>
+                        </div>
+
+                        <!-- Monthly Spent Card -->
+                        <div class="bg-bg-card border border-border rounded-xl p-5 shadow-lg relative overflow-hidden group hover:border-primary transition-colors neon-border card-hover delay-100 animate-slideIn" style="animation-fill-mode: backwards;">
+                            <div class="relative z-10">
+                                <p class="text-text-muted text-sm font-medium">This Month</p>
+                                <h2 class="text-3xl font-bold text-text-main mt-2 count-up" data-value="${monthlyExpenses}">${formatCurrency(0)}</h2>
+                                <div class="mt-4 flex items-center text-sm text-primary">
+                                    <i data-lucide="calendar" class="w-4 h-4 mr-1"></i> ${new Date().toLocaleString('default', { month: 'long' })}
+                                </div>
+                            </div>
+                             <div class="absolute right-4 top-4 text-primary opacity-10 w-24 h-24 group-hover:scale-110 transition-transform duration-500 animate-float-delayed"><i data-lucide="calendar" class="w-full h-full"></i></div>
+                        </div>
+
+                        <!-- Total Savings Card (Replaces Top Category) -->
+                        <div class="bg-bg-card border border-border rounded-xl p-5 shadow-lg relative overflow-hidden group hover:border-primary transition-colors neon-border card-hover delay-200 animate-slideIn" style="animation-fill-mode: backwards;">
+                            <div class="relative z-10">
+                                <p class="text-text-muted text-sm font-medium">Total Savings</p>
+                                <h2 class="text-3xl font-bold text-text-main mt-2 count-up" data-value="${totalSavings}">${formatCurrency(0)}</h2>
+                                <div class="mt-4 flex items-center text-sm text-primary">
+                                    <i data-lucide="piggy-bank" class="w-4 h-4 mr-1"></i> Available
+                                </div>
+                            </div>
+                             <div class="absolute right-4 top-4 text-primary opacity-10 w-24 h-24 group-hover:scale-110 transition-transform duration-500 animate-float"><i data-lucide="piggy-bank" class="w-full h-full"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn delay-300">
+                        <div class="bg-bg-card border border-border rounded-xl p-6 neon-border card-hover">
+                            <h3 class="text-lg font-bold text-text-main mb-6">Category Spending</h3>
+                            <div class="space-y-5">
+                                ${catBreakdown.slice(0, 5).map((cat, i) => `
+                                    <div class="relative group">
+                                        <div class="flex justify-between text-sm mb-1.5 font-medium">
+                                            <span class="text-text-main group-hover:text-primary transition-colors">${cat.name}</span>
+                                            <span class="text-text-muted">${formatCurrency(cat.total)}</span>
+                                        </div>
+                                        <div class="h-2.5 bg-bg-surface rounded-full overflow-hidden shadow-inner">
+                                            <div class="h-full rounded-full transition-all duration-1000 animate-grow" style="width: ${(cat.total / maxSpend) * 100}%; background-color: ${state.theme === 'neon' ? 'var(--primary)' : cat.color}; box-shadow: ${state.theme === 'neon' ? '0 0 10px var(--primary)' : 'none'}; animation-delay: ${i * 100}ms"></div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${catBreakdown.length === 0 ? '<p class="text-text-muted text-center py-4">No data available</p>' : ''}
+                            </div>
+                        </div>
+
+                        <div class="bg-bg-card border border-border rounded-xl p-6 neon-border card-hover">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-lg font-bold text-text-main">Recent Activity</h3>
+                                <button onclick="switchTab('expenses')" class="text-xs text-primary hover:underline">View All</button>
+                            </div>
+                            <div class="space-y-3">
+                                ${state.expenses.slice(0, 5).map((exp, i) => `
+                                    <div onclick="openModal('${exp.id}')" class="flex items-center justify-between p-3 hover:bg-bg-surface rounded-lg transition-all border border-transparent hover:border-border hover:shadow-sm cursor-pointer animate-stagger" style="animation-delay: ${i * 50}ms">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-full bg-bg-surface border border-border flex items-center justify-center text-text-main font-bold shadow-sm">
+                                                ${exp.category[0]}
+                                            </div>
+                                            <div>
+                                                <h4 class="text-text-main text-sm font-medium">${exp.name}</h4>
+                                                <p class="text-text-muted text-xs">${formatDate(exp.date)}</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-text-main font-medium">${formatCurrency(exp.amount)}</span>
+                                    </div>
+                                `).join('')}
+                                ${state.expenses.length === 0 ? '<p class="text-text-muted text-center py-4">No recent expenses</p>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getExpensesHTML() {
+            let filtered = state.expenses.filter(ex => {
+                const matchSearch = ex.name.toLowerCase().includes(state.searchTerm.toLowerCase()) || 
+                                  (ex.notes && ex.notes.toLowerCase().includes(state.searchTerm.toLowerCase()));
+                const matchCat = state.filterCategory === 'All' || ex.category === state.filterCategory;
+                return matchSearch && matchCat;
+            });
+
+            filtered.sort((a, b) => {
+                if (state.sortBy === 'date-desc') return new Date(b.date) - new Date(a.date);
+                if (state.sortBy === 'date-asc') return new Date(a.date) - new Date(b.date);
+                if (state.sortBy === 'amount-desc') return b.amount - a.amount;
+                if (state.sortBy === 'amount-asc') return a.amount - b.amount;
+                return 0;
+            });
+
+            const emptyState = `
+                <div class="flex flex-col items-center justify-center p-12 text-center text-text-muted border-2 border-dashed border-border rounded-xl animate-fadeIn h-full min-h-[300px]">
+                    <div class="p-4 bg-bg-surface rounded-full mb-4 shadow-sm">
+                        <i data-lucide="receipt" class="w-8 h-8 text-primary"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-text-main mb-2">No expenses found</h3>
+                    <p class="mb-6 max-w-xs mx-auto">Track your spending by adding a new expense.</p>
+                    <button onclick="openModal()" class="text-sm bg-primary hover:bg-primary-hover text-primary-fg px-4 py-2 rounded-lg transition-colors shadow-lg shadow-primary/20">
+                        Add Expense
+                    </button>
+                </div>
+            `;
+
+            let viewHTML = '';
+            
+            if (filtered.length === 0) {
+                viewHTML = emptyState;
+            } else if (state.viewMode === 'table') {
+                viewHTML = `
+                    <div class="bg-bg-card rounded-xl border border-border overflow-hidden neon-border shadow-lg animate-fadeIn">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-text-muted">
+                                <thead class="bg-bg-surface/50 text-xs uppercase font-semibold text-text-muted tracking-wider border-b border-border">
+                                    <tr>
+                                        <th class="px-6 py-4">Date</th>
+                                        <th class="px-6 py-4">Name</th>
+                                        <th class="px-6 py-4">Category</th>
+                                        <th class="px-6 py-4">Amount</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border">
+                                    ${filtered.map((item, i) => `
+                                        <tr class="group hover:bg-bg-surface transition-colors animate-stagger" style="animation-delay: ${i * 30}ms">
+                                            <td class="px-6 py-4 whitespace-nowrap">${formatDate(item.date)}</td>
+                                            <td class="px-6 py-4 font-medium text-text-main">${item.name}</td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-light text-primary border border-primary/20">${item.category}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-text-main font-medium">${formatCurrency(item.amount)}</td>
+                                            <td class="px-6 py-4 text-right">
+                                                <div class="flex justify-end gap-2 transition-opacity">
+                                                    <button onclick="openModal('${item.id}')" class="p-1.5 text-primary hover:bg-primary-light rounded transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                                    <button onclick="deleteExpense('${item.id}')" class="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            } else if (state.viewMode === 'list') {
+                viewHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fadeIn">
+                        ${filtered.map((item, i) => `
+                            <div class="bg-bg-card border border-border rounded-xl p-5 hover:border-primary transition-all group relative neon-border card-hover animate-stagger" style="animation-delay: ${i * 50}ms">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-bg-surface border border-border flex items-center justify-center text-xl shadow-sm">
+                                            ${item.category === 'Food' ? '🍔' : item.category === 'Travel' ? '🚗' : '📄'}
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold text-text-main line-clamp-1">${item.name}</h3>
+                                            <span class="text-xs text-text-muted">${formatDate(item.date)}</span>
+                                        </div>
+                                    </div>
+                                    <span class="font-bold text-text-main text-lg">${formatCurrency(item.amount)}</span>
+                                </div>
+                                <div class="pt-4 border-t border-border flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                     <button onclick="openModal('${item.id}')" class="text-xs text-primary hover:text-text-main px-2 py-1 rounded hover:bg-bg-surface transition-colors">Edit</button>
+                                     <button onclick="deleteExpense('${item.id}')" class="text-xs text-red-400 hover:text-text-main px-2 py-1 rounded hover:bg-bg-surface transition-colors">Delete</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (state.viewMode === 'calendar') {
+                viewHTML = getCalendarHTML(filtered);
+            }
+
+            return `
+                <div class="space-y-6 h-full flex flex-col">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-bg-card p-4 rounded-xl border border-border neon-border shadow-md animate-slideIn">
+                        <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                            <div class="relative flex-1 md:flex-none md:w-64">
+                                <i data-lucide="search" class="absolute left-3 top-2.5 text-text-muted w-4 h-4"></i>
+                                <input type="text" placeholder="Search..." value="${state.searchTerm}" oninput="handleSearch(this.value)"
+                                    class="w-full bg-bg-surface border border-border text-text-main text-sm rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-primary outline-none placeholder-text-muted transition-shadow">
+                            </div>
+                            <select onchange="handleFilter(this.value)" class="bg-bg-surface border border-border text-text-main text-sm rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors cursor-pointer">
+                                <option value="All" ${state.filterCategory === 'All' ? 'selected' : ''}>All Categories</option>
+                                ${state.categories.map(c => `<option value="${c.name}" ${state.filterCategory === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+                            </select>
+                            <select onchange="handleSort(this.value)" class="hidden md:block bg-bg-surface border border-border text-text-main text-sm rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors cursor-pointer">
+                                <option value="date-desc" ${state.sortBy === 'date-desc' ? 'selected' : ''}>Newest</option>
+                                <option value="date-asc" ${state.sortBy === 'date-asc' ? 'selected' : ''}>Oldest</option>
+                                <option value="amount-desc" ${state.sortBy === 'amount-desc' ? 'selected' : ''}>High Amount</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto justify-between">
+                            <div class="flex bg-bg-surface rounded-lg p-1 border border-border">
+                                <button onclick="changeView('table')" class="p-1.5 rounded transition-all ${state.viewMode === 'table' ? 'bg-bg-card text-text-main shadow' : 'text-text-muted hover:text-text-main'}"><i data-lucide="table" class="w-4 h-4"></i></button>
+                                <button onclick="changeView('list')" class="p-1.5 rounded transition-all ${state.viewMode === 'list' ? 'bg-bg-card text-text-main shadow' : 'text-text-muted hover:text-text-main'}"><i data-lucide="list" class="w-4 h-4"></i></button>
+                                <button onclick="changeView('calendar')" class="p-1.5 rounded transition-all ${state.viewMode === 'calendar' ? 'bg-bg-card text-text-main shadow' : 'text-text-muted hover:text-text-main'}"><i data-lucide="calendar" class="w-4 h-4"></i></button>
+                            </div>
+                            <button onclick="openModal()" class="flex items-center justify-center font-medium rounded-lg bg-primary hover:bg-primary-hover text-primary-fg px-4 py-2 text-xs shadow-lg shadow-primary/20 primary-btn transition-all transform hover:translate-y-px">
+                                <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-auto min-h-[500px]">
+                        ${viewHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getCalendarHTML(expenses) {
+            const year = state.calendarDate.getFullYear();
+            const month = state.calendarDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            
+            let daysHTML = '';
+            for (let i = 0; i < firstDay; i++) {
+                daysHTML += `<div class="h-24 md:h-32 bg-bg-surface/30 border border-border/50 backdrop-blur-sm"></div>`;
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayExpenses = expenses.filter(e => e.date === dateStr);
+                const total = dayExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+                const isToday = dateStr === new Date().toISOString().split('T')[0];
+                
+                daysHTML += `
+                    <div class="h-24 md:h-32 bg-bg-card border border-border hover:bg-bg-surface transition-colors p-2 flex flex-col justify-between overflow-hidden cursor-pointer group card-hover animate-fadeIn">
+                        <span class="text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full transition-all ${isToday ? 'bg-primary text-primary-fg shadow-md' : 'text-text-muted group-hover:bg-bg-surface'}">${day}</span>
+                        <div class="space-y-1">
+                            ${dayExpenses.slice(0, 2).map(e => `<div class="text-[10px] bg-bg-surface text-text-muted px-1.5 py-0.5 rounded truncate border border-border shadow-sm">${e.name}</div>`).join('')}
+                            ${dayExpenses.length > 2 ? `<div class="text-[10px] text-text-muted pl-1">+${dayExpenses.length - 2} more</div>` : ''}
+                        </div>
+                        ${total > 0 ? `<div class="text-right text-xs font-bold text-primary">${formatCurrency(total)}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            return `
+                 <div class="bg-bg-card rounded-xl border border-border overflow-hidden neon-border shadow-lg animate-fadeIn">
+                    <div class="p-4 flex items-center justify-between border-b border-border bg-bg-surface/30">
+                        <h2 class="text-lg font-bold text-text-main tracking-wide">${state.calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
+                        <div class="flex gap-2">
+                             <button onclick="changeMonth(-1)" class="p-1.5 bg-bg-surface rounded-lg text-text-main hover:bg-bg-main hover:text-primary transition-colors border border-border"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                             <button onclick="changeMonth(1)" class="p-1.5 bg-bg-surface rounded-lg text-text-main hover:bg-bg-main hover:text-primary transition-colors border border-border"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 text-center bg-bg-surface/50 text-text-muted text-xs py-3 font-semibold tracking-wider">
+                        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+                    </div>
+                    <div class="grid grid-cols-7">
+                        ${daysHTML}
+                    </div>
+                 </div>
+            `;
+        }
+
+        function getBudgetsHTML() {
+            const emptyState = `
+                <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center p-12 text-center text-text-muted border-2 border-dashed border-border rounded-xl animate-fadeIn">
+                    <div class="p-4 bg-bg-surface rounded-full mb-4 shadow-sm">
+                        <i data-lucide="pie-chart" class="w-8 h-8 text-primary"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-text-main mb-2">No budgets set</h3>
+                    <p class="mb-6 max-w-xs mx-auto">Set monthly limits for categories to track your spending.</p>
+                    <button onclick="addCategory()" class="text-sm bg-primary hover:bg-primary-hover text-primary-fg px-4 py-2 rounded-lg transition-colors">
+                        Create Budget Category
+                    </button>
+                </div>
+            `;
+
+            return `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center animate-slideIn">
+                        <h2 class="text-2xl font-bold text-text-main">Budget Planning</h2>
+                        <button onclick="addCategory()" class="flex items-center text-sm bg-primary hover:bg-primary-hover text-primary-fg px-4 py-2 rounded-lg primary-btn transition-all shadow-lg shadow-primary/20 hover:scale-105">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> New Category
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn delay-100">
+                        ${state.categories.length === 0 ? emptyState : state.categories.map((cat, i) => {
+                            const spent = state.expenses
+                                .filter(e => e.category === cat.name)
+                                .reduce((sum, e) => sum + Number(e.amount), 0);
+                            const percentage = Math.min((spent / cat.budget) * 100, 100);
+                            const isOver = spent > cat.budget;
+                            
+                            return `
+                                <div class="bg-bg-card border border-border rounded-xl p-5 shadow-lg neon-border card-hover animate-slideIn" style="animation-delay: ${i * 100}ms">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-text-main flex items-center gap-2">
+                                                <span class="w-3 h-3 rounded-full shadow-sm" style="background: ${state.theme === 'neon' ? 'var(--primary)' : cat.color}; box-shadow: ${state.theme === 'neon' ? '0 0 5px var(--primary)' : 'none'}"></span>
+                                                ${cat.name}
+                                            </h3>
+                                            <p class="text-sm text-text-muted mt-1 font-medium ${isOver ? 'text-red-400' : 'text-green-400'}">${isOver ? 'Over Budget' : 'On Track'}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xl font-bold text-text-main">${formatCurrency(spent)}</p>
+                                            <p class="text-xs text-text-muted">of ${formatCurrency(cat.budget)}</p>
+                                        </div>
+                                    </div>
+                                    <div class="relative h-3.5 bg-bg-surface rounded-full overflow-hidden mb-2 shadow-inner">
+                                        <div class="absolute top-0 left-0 h-full transition-all duration-1000 animate-grow" style="width: ${percentage}%; background-color: ${state.theme === 'neon' ? 'var(--primary)' : (isOver ? '#ef4444' : '#3b82f6')}; box-shadow: ${state.theme === 'neon' ? '0 0 10px var(--primary)' : 'none'}"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-text-muted font-medium">
+                                        <span>0%</span>
+                                        <span>${Math.round(percentage)}%</span>
+                                        <span>100%</span>
+                                    </div>
+                                    <div class="mt-4 flex justify-end">
+                                        <button onclick="editBudget('${cat.id}')" class="text-xs text-primary hover:text-text-main hover:underline transition-colors">Edit Budget</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getDebtsHTML() {
+            const emptyState = `
+                <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center p-12 text-center text-text-muted border-2 border-dashed border-border rounded-xl animate-fadeIn">
+                    <div class="p-4 bg-bg-surface rounded-full mb-4 shadow-sm">
+                        <i data-lucide="credit-card" class="w-8 h-8 text-primary"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-text-main mb-2">No debts tracked</h3>
+                    <p class="mb-6 max-w-xs mx-auto">Keep track of your loans and credit card payments here.</p>
+                    <button onclick="addDebt()" class="text-sm bg-primary hover:bg-primary-hover text-primary-fg px-4 py-2 rounded-lg transition-colors">
+                        Add Your First Debt
+                    </button>
+                </div>
+            `;
+
+            return `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center animate-slideIn">
+                        <h2 class="text-2xl font-bold text-text-main">Debt Tracker</h2>
+                        <button onclick="addDebt()" class="flex items-center text-sm bg-primary hover:bg-primary-hover text-primary-fg px-4 py-2 rounded-lg primary-btn transition-all shadow-lg shadow-primary/20 hover:scale-105">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add Debt
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn delay-100">
+                        ${state.debts.length === 0 ? emptyState : state.debts.map((debt, i) => {
+                            const percentage = Math.min((debt.paid / debt.total) * 100, 100);
+                            const remaining = debt.total - debt.paid;
+                            
+                            return `
+                                <div class="bg-bg-card border border-border rounded-xl p-5 shadow-lg neon-border card-hover animate-slideIn" style="animation-delay: ${i * 100}ms">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-text-main flex items-center gap-2">
+                                                <span class="w-3 h-3 rounded-full shadow-sm" style="background: ${debt.color || '#ef4444'}"></span>
+                                                ${debt.name}
+                                            </h3>
+                                            <p class="text-sm text-text-muted mt-1 font-medium">Remaining: ${formatCurrency(remaining)}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xl font-bold text-text-main">${formatCurrency(debt.paid)}</p>
+                                            <p class="text-xs text-text-muted">paid of ${formatCurrency(debt.total)}</p>
+                                        </div>
+                                    </div>
+                                    <div class="relative h-3.5 bg-bg-surface rounded-full overflow-hidden mb-2 shadow-inner">
+                                        <div class="absolute top-0 left-0 h-full transition-all duration-1000 animate-grow" style="width: ${percentage}%; background-color: ${debt.color || '#ef4444'};"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-text-muted font-medium mb-4">
+                                        <span>0%</span>
+                                        <span>${Math.round(percentage)}%</span>
+                                        <span>100%</span>
+                                    </div>
+                                    <div class="flex justify-end gap-2 border-t border-border pt-3">
+                                        <button onclick="updateDebtAmount('${debt.id}')" class="flex items-center text-xs px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-primary hover:text-white transition-colors text-text-main border border-border hover:border-transparent">
+                                            <i data-lucide="dollar-sign" class="w-3 h-3 mr-1"></i> Pay
+                                        </button>
+                                        <button onclick="editDebt('${debt.id}')" class="flex items-center text-xs px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-blue-600 hover:text-white transition-colors text-text-main border border-border hover:border-transparent">
+                                            <i data-lucide="edit-2" class="w-3 h-3 mr-1"></i> Edit
+                                        </button>
+                                        <button onclick="deleteDebt('${debt.id}')" class="flex items-center text-xs px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-red-600 hover:text-white transition-colors text-text-muted border border-border hover:border-transparent">
+                                            <i data-lucide="trash-2" class="w-3 h-3 mr-1"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getSavingsHTML() {
+            const emptyState = `
+                <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center p-12 text-center text-text-muted border-2 border-dashed border-border rounded-xl animate-fadeIn">
+                    <div class="p-4 bg-bg-surface rounded-full mb-4 shadow-sm">
+                        <i data-lucide="piggy-bank" class="w-8 h-8 text-primary"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-text-main mb-2">No savings goals</h3>
+                    <p class="mb-6 max-w-xs mx-auto">Start saving for your dreams today.</p>
+                    <button onclick="addSavingsGoal()" class="text-sm bg-primary hover:bg-primary-hover text-primary-fg px-4 py-2 rounded-lg transition-colors">
+                        Create Savings Goal
+                    </button>
+                </div>
+            `;
+
+            return `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center animate-slideIn">
+                        <h2 class="text-2xl font-bold text-text-main">Savings Goals</h2>
+                        <button onclick="addSavingsGoal()" class="flex items-center text-sm bg-primary hover:bg-primary-hover text-primary-fg px-4 py-2 rounded-lg primary-btn transition-all shadow-lg shadow-primary/20 hover:scale-105">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> New Goal
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn delay-100">
+                        ${state.savings.length === 0 ? emptyState : state.savings.map((goal, i) => {
+                            const percentage = Math.min((goal.current / goal.target) * 100, 100);
+                            
+                            return `
+                                <div class="bg-bg-card border border-border rounded-xl p-5 shadow-lg neon-border card-hover animate-slideIn" style="animation-delay: ${i * 100}ms">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-text-main flex items-center gap-2">
+                                                <span class="w-3 h-3 rounded-full shadow-sm" style="background: ${goal.color || '#10b981'}"></span>
+                                                ${goal.name}
+                                            </h3>
+                                            <p class="text-sm text-text-muted mt-1 font-medium">${percentage >= 100 ? 'Goal Reached!' : 'In Progress'}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xl font-bold text-text-main">${formatCurrency(goal.current)}</p>
+                                            <p class="text-xs text-text-muted">of ${formatCurrency(goal.target)}</p>
+                                        </div>
+                                    </div>
+                                    <div class="relative h-3.5 bg-bg-surface rounded-full overflow-hidden mb-2 shadow-inner">
+                                        <div class="absolute top-0 left-0 h-full transition-all duration-1000 animate-grow" style="width: ${percentage}%; background-color: ${goal.color || '#10b981'};"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-text-muted font-medium mb-4">
+                                        <span>0%</span>
+                                        <span>${Math.round(percentage)}%</span>
+                                        <span>100%</span>
+                                    </div>
+                                    <div class="flex justify-end gap-2 border-t border-border pt-3">
+                                        <button onclick="updateSavingsAmount('${goal.id}', true)" class="text-xs px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-green-600 hover:text-white transition-colors text-text-main">Deposit</button>
+                                        <button onclick="updateSavingsAmount('${goal.id}', false)" class="text-xs px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-red-500 hover:text-white transition-colors text-text-main">Withdraw</button>
+                                        <button onclick="deleteSavings('${goal.id}')" class="text-xs px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-red-600 hover:text-white transition-colors text-text-muted">Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getSettingsHTML() {
+            return `
+                <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn">
+                    
+                    <!-- Theme Settings -->
+                    <div class="bg-bg-card border border-border rounded-xl p-6 neon-border shadow-lg card-hover">
+                        <div class="border-b border-border pb-4 mb-6">
+                            <h2 class="text-xl font-bold text-text-main">Appearance</h2>
+                            <p class="text-text-muted text-sm mt-1">Customize the look and feel of your workspace.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Dark Theme -->
+                            <button onclick="setTheme('dark')" class="p-4 rounded-xl border ${state.theme === 'dark' ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-bg-card' : 'border-border'} hover:border-primary transition-all flex flex-col gap-2 group">
+                                <div class="w-full h-16 bg-gray-900 rounded-lg border border-gray-700 relative overflow-hidden group-hover:shadow-md transition-shadow">
+                                    <div class="absolute top-2 left-2 w-8 h-8 bg-blue-500 rounded-full opacity-20"></div>
+                                </div>
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-text-main font-medium text-sm">Dark</span>
+                                    ${state.theme === 'dark' ? '<i data-lucide="check" class="w-4 h-4 text-primary"></i>' : ''}
+                                </div>
+                            </button>
+
+                            <!-- Light Theme -->
+                            <button onclick="setTheme('light')" class="p-4 rounded-xl border ${state.theme === 'light' ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-bg-card' : 'border-border'} hover:border-primary transition-all flex flex-col gap-2 group">
+                                <div class="w-full h-16 bg-gray-100 rounded-lg border border-gray-200 relative overflow-hidden group-hover:shadow-md transition-shadow">
+                                    <div class="absolute top-2 left-2 w-8 h-8 bg-blue-600 rounded-full opacity-20"></div>
+                                </div>
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-text-main font-medium text-sm">Light</span>
+                                    ${state.theme === 'light' ? '<i data-lucide="check" class="w-4 h-4 text-primary"></i>' : ''}
+                                </div>
+                            </button>
+
+                            <!-- Neon Theme -->
+                            <button onclick="setTheme('neon')" class="p-4 rounded-xl border ${state.theme === 'neon' ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-bg-card' : 'border-border'} hover:border-primary transition-all flex flex-col gap-2 group">
+                                <div class="w-full h-16 bg-black rounded-lg border border-yellow-500 relative overflow-hidden group-hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-shadow">
+                                    <div class="absolute top-2 left-2 w-8 h-8 bg-yellow-500 rounded-full opacity-40 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></div>
+                                </div>
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-text-main font-medium text-sm">Neon</span>
+                                    ${state.theme === 'neon' ? '<i data-lucide="check" class="w-4 h-4 text-primary"></i>' : ''}
+                                </div>
+                            </button>
+
+                            <!-- Custom Theme -->
+                            <button onclick="setTheme('custom')" class="p-4 rounded-xl border ${state.theme === 'custom' ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-bg-card' : 'border-border'} hover:border-primary transition-all flex flex-col gap-2 relative overflow-hidden group">
+                                <div class="w-full h-16 rounded-lg border border-border relative overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 opacity-20 group-hover:opacity-30 transition-opacity">
+                                </div>
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-text-main font-medium text-sm">Custom</span>
+                                    ${state.theme === 'custom' ? '<i data-lucide="check" class="w-4 h-4 text-primary"></i>' : ''}
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Custom Theme Editor (Only shows when Custom is active) -->
+                        ${state.theme === 'custom' ? `
+                            <div class="mt-6 pt-6 border-t border-border animate-slideIn">
+                                <h3 class="text-sm font-semibold text-text-main mb-4 uppercase tracking-wider">Custom Theme Editor</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    ${Object.entries(state.customTheme).map(([key, val]) => {
+                                        let label = key.replace('--', '').replace(/-/g, ' ');
+                                        const labels = {
+                                            'bg main': 'Main Background', 'bg surface': 'Surface Color', 'bg card': 'Card Color',
+                                            'primary': 'Primary Color', 'text main': 'Text Color', 'border color': 'Border Color',
+                                            'primary hover': 'Primary Hover', 'text muted': 'Muted Text', 'primary fg': 'Button Text', 'text inverted': 'Inverted Text'
+                                        };
+                                        if (['--primary-light', '--text-inverted'].includes(key)) return ''; 
+                                        
+                                        return `
+                                            <div class="bg-bg-surface p-3 rounded-lg border border-border flex items-center gap-3 hover:border-primary transition-colors">
+                                                <input type="color" value="${val}" onchange="updateCustomTheme('${key}', this.value)" class="w-10 h-10 rounded cursor-pointer bg-transparent border-none shadow-sm">
+                                                <div class="flex flex-col">
+                                                    <span class="text-text-main text-sm font-medium capitalize">${labels[label] || label}</span>
+                                                    <span class="text-text-muted text-xs font-mono">${val}</span>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Field Settings -->
+                    <div class="bg-bg-card border border-border rounded-xl p-6 neon-border shadow-lg card-hover">
+                        <div class="border-b border-border pb-4 mb-6">
+                            <h2 class="text-xl font-bold text-text-main">Field Customization</h2>
+                            <p class="text-text-muted text-sm mt-1">Manage the properties tracked for each expense.</p>
+                        </div>
+                        <div class="space-y-3">
+                            ${state.schema.map(field => `
+                                <div class="flex items-center justify-between bg-bg-surface p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="p-2 bg-bg-card rounded text-text-muted border border-border shadow-sm">
+                                            <i data-lucide="${field.type === 'text' ? 'type' : field.type === 'number' ? 'hash' : 'list'}" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-text-main font-medium">${field.label}</h4>
+                                            <p class="text-xs text-text-muted capitalize">${field.type} • ${field.required ? 'Required' : 'Optional'}</p>
+                                        </div>
+                                    </div>
+                                    ${!field.system ? `<button onclick="deleteField('${field.id}')" class="text-red-400 hover:text-red-300 p-2 hover:bg-bg-card rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '<span class="text-xs text-text-muted font-medium px-3 py-1 bg-bg-card rounded border border-border">System</span>'}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-border">
+                            <h3 class="text-lg font-medium text-text-main mb-4">Add Custom Field</h3>
+                            <form onsubmit="addCustomField(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-medium text-text-muted mb-1">Field Name</label>
+                                    <input name="label" required type="text" class="w-full bg-bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder-text-muted transition-all" placeholder="e.g., Receipt URL">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-text-muted mb-1">Type</label>
+                                    <select name="type" class="w-full bg-bg-surface border border-border rounded-lg px-3 py-2 text-text-main text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all">
+                                        <option value="text">Text</option>
+                                        <option value="number">Number</option>
+                                        <option value="date">Date</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="w-full bg-bg-surface hover:bg-bg-main border border-border text-text-main font-medium rounded-lg px-4 py-2 transition-colors hover:border-primary hover:text-primary">Add Field</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Interaction Handlers ---
+        
+        function openModal(id = null) {
+            state.editingId = id;
+            const modal = document.getElementById('modal-layer');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            
+            title.innerText = id ? 'Edit Expense' : 'New Expense';
+            modal.classList.remove('hidden');
+
+            const item = id ? state.expenses.find(e => String(e.id) === String(id)) : {};
+            const today = new Date().toISOString().split('T')[0];
+
+            body.innerHTML = state.schema.map(field => {
+                const val = item[field.id] || (field.id === 'date' && !id ? today : '');
+                const commonClasses = "w-full bg-bg-surface border border-border rounded-lg px-3 py-2.5 text-text-main outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all";
+                
+                if (field.type === 'select' && field.id === 'category') {
+                    return `
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-1.5">${field.label}</label>
+                            <select id="field-${field.id}" class="${commonClasses}">
+                                <option value="">Select Category</option>
+                                ${state.categories.map(c => `<option value="${c.name}" ${val === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+                
+                if (field.type === 'select') {
+                    return `
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-1.5">${field.label}</label>
+                            <select id="field-${field.id}" class="${commonClasses}">
+                                ${field.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div>
+                        <label class="block text-sm font-medium text-text-muted mb-1.5">${field.label}</label>
+                        <input type="${field.type}" id="field-${field.id}" value="${val}" class="${commonClasses}" ${field.required ? 'required' : ''}>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-layer').classList.add('hidden');
+            state.editingId = null;
+        }
+
+        function saveExpense() {
+            const newItem = { id: state.editingId || Date.now() };
+            let isValid = true;
+
+            state.schema.forEach(field => {
+                const el = document.getElementById(`field-${field.id}`);
+                if (field.required && !el.value) isValid = false;
+                newItem[field.id] = el.value;
+            });
+
+            if (!isValid) {
+                showAlert('Please fill in all required fields');
+                return;
+            }
+
+            if (state.editingId) {
+                state.expenses = state.expenses.map(e => String(e.id) === String(state.editingId) ? newItem : e);
+            } else {
+                state.expenses.push(newItem);
+            }
+            
+            closeModal();
+            persist();
+        }
+
+        function deleteExpense(id) {
+            showConfirm("Delete this expense?", () => {
+                state.expenses = state.expenses.filter(e => String(e.id) !== String(id));
+                persist();
+            });
+        }
+
+        function handleSearch(val) { state.searchTerm = val; renderApp(); }
+        function handleFilter(val) { state.filterCategory = val; renderApp(); }
+        function handleSort(val) { state.sortBy = val; renderApp(); }
+        function changeView(mode) { state.viewMode = mode; renderApp(); }
+        function changeMonth(delta) { 
+            state.calendarDate.setMonth(state.calendarDate.getMonth() + delta);
+            renderApp();
+        }
+
+        function addDebt() {
+            showPrompt("Debt Name", "", (name) => {
+                if(name) {
+                    showPrompt("Total Debt Amount", "0", (total) => {
+                        showPrompt("Amount Already Paid", "0", (paid) => {
+                            const color = '#' + Math.floor(Math.random()*16777215).toString(16);
+                            state.debts.push({ 
+                                id: Date.now(), 
+                                name, 
+                                total: Number(total), 
+                                paid: Number(paid), 
+                                color 
+                            });
+                            persist();
+                        });
+                    });
+                }
+            });
+        }
+
+        function deleteDebt(id) {
+            showConfirm("Remove this debt?", () => {
+                state.debts = state.debts.filter(d => String(d.id) !== String(id));
+                persist();
+            });
+        }
+
+        function updateDebtAmount(id) {
+            const debt = state.debts.find(d => String(d.id) === String(id));
+            if(!debt) return;
+            showPrompt("Enter payment amount to add", "0", (amount) => {
+                if(amount && !isNaN(amount)) {
+                    debt.paid += Number(amount);
+                    if(debt.paid > debt.total) debt.paid = debt.total; 
+                    persist();
+                }
+            });
+        }
+
+        function editDebt(id) {
+            const debt = state.debts.find(d => String(d.id) === String(id));
+            if(!debt) return;
+            
+            showPrompt("Edit Debt Name", debt.name, (name) => {
+                if (name) {
+                    showPrompt("Edit Total Debt Amount", debt.total, (total) => {
+                        showPrompt("Edit Amount Paid So Far", debt.paid, (paid) => {
+                            if (total && !isNaN(total)) debt.total = Number(total);
+                            if (paid && !isNaN(paid)) debt.paid = Number(paid);
+                            debt.name = name;
+                            persist();
+                        });
+                    });
+                }
+            });
+        }
+
+        function addSavingsGoal() {
+            showPrompt("Goal Name", "", (name) => {
+                if (name) {
+                    showPrompt("Target Amount", "0", (target) => {
+                        showPrompt("Current Savings", "0", (current) => {
+                            const color = '#' + Math.floor(Math.random()*16777215).toString(16);
+                            state.savings.push({ 
+                                id: Date.now(), 
+                                name, 
+                                target: Number(target), 
+                                current: Number(current), 
+                                color 
+                            });
+                            persist();
+                        });
+                    });
+                }
+            });
+        }
+
+        function deleteSavings(id) {
+            showConfirm("Remove this savings goal?", () => {
+                state.savings = state.savings.filter(s => String(s.id) !== String(id));
+                persist();
+            });
+        }
+
+        function updateSavingsAmount(id, isDeposit) {
+            const goal = state.savings.find(s => String(s.id) === String(id));
+            if(!goal) return;
+            showPrompt(`Enter amount to ${isDeposit ? 'deposit' : 'withdraw'}`, "0", (amount) => {
+                if(amount && !isNaN(amount)) {
+                    if(isDeposit) {
+                        goal.current += Number(amount);
+                    } else {
+                        goal.current -= Number(amount);
+                        if(goal.current < 0) goal.current = 0;
+                    }
+                    persist();
+                }
+            });
+        }
+
+        function editBudget(id) {
+            const cat = state.categories.find(c => String(c.id) === String(id));
+            if (!cat) return;
+            showPrompt(`New budget for ${cat.name}`, cat.budget, (newB) => {
+                if(newB && !isNaN(newB)) { 
+                    cat.budget = Number(newB); 
+                    persist(); 
+                }
+            });
+        }
+
+        function deleteField(id) { 
+            showConfirm("Remove this field?", () => {
+                state.schema = state.schema.filter(f => f.id !== id); 
+                persist(); 
+            });
+        }
+
+        function addCustomField(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            state.schema.push({
+                id: formData.get('label').toLowerCase().replace(/\s+/g, '_'),
+                label: formData.get('label'),
+                type: formData.get('type'),
+                required: false,
+                system: false
+            });
+            persist();
+        }
+
+        function addCategory() {
+            showPrompt("Category Name", "", (name) => {
+                if(name) {
+                    showPrompt("Budget Amount", "0", (budget) => {
+                        const color = '#' + Math.floor(Math.random()*16777215).toString(16);
+                        state.categories.push({ id: Date.now(), name, budget: Number(budget), color });
+                        persist();
+                    });
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 A comprehensive, single-file personal finance application featuring a stunning **3D interactive background**, **Glassmorphism UI**, and deep customization options. Built with vanilla JavaScript, Tailwind CSS, and Three.js.
 
-## ✨ Watch live demo at (https://via.placeholder.com/1200x600?text=ExpenseTracker+Dashboard+Preview)
+* **✨ Watch live demo at (snehal976.github.io/Expense-tracker/)
 
 
 ## ✨ Key Features
